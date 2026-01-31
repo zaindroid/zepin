@@ -1,0 +1,78 @@
+# =============================================================================
+# Prometheus Configuration — DePIN Edge Cluster
+# Scrape targets use Tailscale IPs for secure internal communication.
+# Replace TAILSCALE_IP_* placeholders with actual Tailscale IPs.
+# =============================================================================
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+  scrape_timeout: 10s
+
+rule_files:
+  - /etc/prometheus/alerts/*.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+scrape_configs:
+  # ─── Prometheus Self ────────────────────────────────────────────────────
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # ─── Node Exporters ────────────────────────────────────────────────────
+  - job_name: "node-exporter"
+    scrape_interval: 15s
+    static_configs:
+      # depin-pi4 — RPi 4 Bandwidth
+      - targets: ["TAILSCALE_IP_PI4:9100"]
+        labels:
+          node: "depin-pi4"
+          role: "bandwidth"
+          hardware: "rpi4"
+
+      # depin-pi3-1 — RPi 3B+ Storage (500 GB USB)
+      - targets: ["TAILSCALE_IP_PI3_1:9100"]
+        labels:
+          node: "depin-pi3-1"
+          role: "storage"
+          hardware: "rpi3bp"
+
+      # depin-pi3-2 — RPi 3B+ Indexing
+      - targets: ["TAILSCALE_IP_PI3_2:9100"]
+        labels:
+          node: "depin-pi3-2"
+          role: "indexing"
+          hardware: "rpi3bp"
+
+      # depin-pi3-mon — RPi 3B+ Monitoring (self)
+      - targets: ["localhost:9100"]
+        labels:
+          node: "depin-pi3-mon"
+          role: "monitoring"
+          hardware: "rpi3bp"
+
+      # depin-jetson — Jetson Nano Compute
+      - targets: ["TAILSCALE_IP_JETSON:9100"]
+        labels:
+          node: "depin-jetson"
+          role: "compute"
+          hardware: "jetson-nano"
+
+      # rtx-standby — RTX PC (2× 3090)
+      - targets: ["TAILSCALE_IP_RTX:9100"]
+        labels:
+          node: "rtx-standby"
+          role: "standby"
+          hardware: "rtx-pc"
+
+  # ─── cAdvisor (Docker metrics on monitoring node) ───────────────────────
+  - job_name: "cadvisor"
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["cadvisor:8080"]
+        labels:
+          node: "depin-pi3-mon"

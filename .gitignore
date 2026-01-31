@@ -1,0 +1,36 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets — never commit
+*.env
+.env.*
+credentials*
+*secret*
+*password*
+*.pem
+*.key
+id_rsa*
+
+# Docker volumes
+**/data/
+prometheus-data/
+grafana-data/
+alertmanager-data/
+
+# PlatformIO build artifacts
+esp32/.pio/
+esp32/.vscode/
+
+# Logs
+*.log
+/var/log/
+
+# Claude Code
+.claude/

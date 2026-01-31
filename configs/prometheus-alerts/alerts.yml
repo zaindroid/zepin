@@ -1,0 +1,120 @@
+# =============================================================================
+# Prometheus Alert Rules — DePIN Edge Cluster
+# =============================================================================
+groups:
+  - name: node-health
+    rules:
+      # ─── Node Down ───────────────────────────────────────────────────────
+      - alert: NodeDown
+        expr: up{job="node-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node {{ $labels.node }} is DOWN"
+          description: "Node exporter on {{ $labels.node }} ({{ $labels.role }}) has been unreachable for 2 minutes."
+
+      # ─── High CPU ────────────────────────────────────────────────────────
+      - alert: HighCPU
+        expr: 100 - (avg by(node) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU on {{ $labels.node }}"
+          description: "CPU usage on {{ $labels.node }} has been above 80% for 10 minutes. Current: {{ $value | printf \"%.1f\" }}%"
+
+      # ─── Critical CPU ────────────────────────────────────────────────────
+      - alert: CriticalCPU
+        expr: 100 - (avg by(node) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CRITICAL CPU on {{ $labels.node }}"
+          description: "CPU usage on {{ $labels.node }} exceeds 95% for 5 minutes. Possible runaway process."
+
+      # ─── High Memory ─────────────────────────────────────────────────────
+      - alert: HighMemory
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory on {{ $labels.node }}"
+          description: "Memory usage on {{ $labels.node }} is {{ $value | printf \"%.1f\" }}%"
+
+      # ─── Disk Space Low ──────────────────────────────────────────────────
+      - alert: DiskSpaceLow
+        expr: (1 - node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space low on {{ $labels.node }}"
+          description: "Root filesystem on {{ $labels.node }} is {{ $value | printf \"%.1f\" }}% full."
+
+      # ─── DePIN Storage Disk Critical ─────────────────────────────────────
+      - alert: DePINStorageFull
+        expr: (1 - node_filesystem_avail_bytes{mountpoint="/mnt/depin-storage"} / node_filesystem_size_bytes{mountpoint="/mnt/depin-storage"}) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "DePIN storage disk nearly full on {{ $labels.node }}"
+          description: "Storage mount /mnt/depin-storage is {{ $value | printf \"%.1f\" }}% full."
+
+      # ─── High Temperature (RPi thermal throttle) ─────────────────────────
+      - alert: HighTemperature
+        expr: node_hwmon_temp_celsius > 75
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High temperature on {{ $labels.node }}"
+          description: "Temperature on {{ $labels.node }} is {{ $value | printf \"%.1f\" }}°C. Thermal throttling may occur."
+
+      # ─── Network Saturation ──────────────────────────────────────────────
+      - alert: NetworkSaturation
+        expr: rate(node_network_receive_bytes_total{device!="lo"}[5m]) > 10000000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High network receive rate on {{ $labels.node }}"
+          description: "Network receive rate on {{ $labels.node }} exceeds 10 MB/s for 10 minutes."
+
+      # ─── Swap Usage ──────────────────────────────────────────────────────
+      - alert: HighSwapUsage
+        expr: (node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes) / node_memory_SwapTotal_bytes * 100 > 50
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High swap usage on {{ $labels.node }}"
+          description: "Swap usage on {{ $labels.node }} is {{ $value | printf \"%.1f\" }}%. System may be thrashing."
+
+      # ─── System Load ─────────────────────────────────────────────────────
+      - alert: HighSystemLoad
+        expr: node_load5 / count without(cpu, mode) (node_cpu_seconds_total{mode="idle"}) > 1.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High system load on {{ $labels.node }}"
+          description: "5-minute load average per CPU on {{ $labels.node }} is {{ $value | printf \"%.2f\" }}."
+
+  - name: uptime-tracking
+    rules:
+      # ─── Node Uptime Recording ──────────────────────────────────────────
+      - record: depin:node_uptime_ratio:5m
+        expr: avg_over_time(up{job="node-exporter"}[5m])
+
+      - alert: UptimeBelow99
+        expr: avg_over_time(up{job="node-exporter"}[24h]) < 0.99
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uptime below 99% on {{ $labels.node }}"
+          description: "24h uptime on {{ $labels.node }} is {{ $value | printf \"%.2f\" }}. DePIN reputation may be affected."

@@ -1,0 +1,39 @@
+# =============================================================================
+# Alertmanager Configuration — DePIN Edge Cluster
+# Configure your notification channel below.
+# =============================================================================
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ["alertname", "node"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: "default"
+
+  routes:
+    - match:
+        severity: critical
+      receiver: "critical"
+      repeat_interval: 1h
+
+receivers:
+  - name: "default"
+    # ─── Option 1: Webhook (Discord, Slack, Telegram bot, etc.) ──────────
+    # webhook_configs:
+    #   - url: "https://your-webhook-url"
+    #     send_resolved: true
+
+  - name: "critical"
+    # webhook_configs:
+    #   - url: "https://your-critical-webhook-url"
+    #     send_resolved: true
+
+# Inhibition: suppress warning if critical is already firing for same node
+inhibit_rules:
+  - source_match:
+      severity: "critical"
+    target_match:
+      severity: "warning"
+    equal: ["alertname", "node"]
