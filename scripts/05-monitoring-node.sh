@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# DePIN Edge Cluster — Phase 5: Deploy Monitoring Stack (depin-pi3-mon ONLY)
+# DePIN Edge Cluster — Phase 5: Deploy Monitoring Stack (zpin-pi3-mon ONLY)
 # This is the FIRST service deployed. All other nodes need this running first.
 # =============================================================================
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,8 +15,8 @@ log_info "=== Deploying Monitoring Stack on $(get_hostname) ==="
 
 # ─── Verify This is the Monitoring Node ─────────────────────────────────────
 CURRENT_HOST=$(get_hostname)
-if [[ "$CURRENT_HOST" != "depin-pi3-mon" ]]; then
-  log_warn "Current hostname is '${CURRENT_HOST}', expected 'depin-pi3-mon'."
+if [[ "$CURRENT_HOST" != "zpin-pi3-mon" ]]; then
+  log_warn "Current hostname is '${CURRENT_HOST}', expected 'zpin-pi3-mon'."
   confirm "Are you sure this is the monitoring node?" || bail "Aborting."
 fi
 

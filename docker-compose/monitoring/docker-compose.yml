@@ -1,5 +1,5 @@
 # =============================================================================
-# Monitoring Stack — Node 4 (depin-pi3-mon)
+# Monitoring Stack — Node 4 (zpin-pi3-mon)
 # Prometheus + Grafana + Alertmanager + cAdvisor + Node Exporter
 # NO earning workloads on this node.
 # =============================================================================

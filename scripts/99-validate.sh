@@ -227,7 +227,7 @@ fi
 echo ""
 
 # =============================================================================
-# 8. STORAGE HEALTH (depin-pi3-1)
+# 8. STORAGE HEALTH (zpin-pi3-1)
 # =============================================================================
 log_info "── 8. Storage Health ──"
 
@@ -244,7 +244,7 @@ if [[ -n "$STORAGE_IP" ]]; then
       check_warn "Storage usage above 85%!"
     fi
   else
-    check_fail "Storage not mounted at /mnt/depin-storage on depin-pi3-1"
+    check_fail "Storage not mounted at /mnt/depin-storage on zpin-pi3-1"
   fi
 
   # SMART check

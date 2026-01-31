@@ -22,12 +22,12 @@ detect_role() {
   local hostname
   hostname=$(get_hostname)
   case "$hostname" in
-    depin-pi4)      echo "bandwidth"  ;;
-    depin-pi3-1)    echo "storage"    ;;
-    depin-pi3-2)    echo "indexing"   ;;
-    depin-pi3-mon)  echo "monitoring" ;;
-    depin-jetson)   echo "compute"    ;;
-    rtx-standby)    echo "rtx"        ;;
+    zpin-pi4)       echo "bandwidth"  ;;
+    zpin-pi3-1)     echo "storage"    ;;
+    zpin-pi3-2)     echo "indexing"   ;;
+    zpin-pi3-mon)   echo "monitoring" ;;
+    zpin-jetson)    echo "compute"    ;;
+    bitbots01)      echo "rtx"        ;;
     *)              echo ""           ;;
   esac
 }
@@ -59,7 +59,7 @@ fi
 
 case "$ROLE" in
   bandwidth)
-    log_info "Deploying Bandwidth DePIN (depin-pi4)..."
+    log_info "Deploying Bandwidth DePIN (zpin-pi4)..."
     bash "${SCRIPT_DIR}/scripts/08-deploy-bandwidth.sh"
     ;;
 
@@ -69,22 +69,22 @@ case "$ROLE" in
       log_info "Storage not mounted. Running disk prep first..."
       bash "${SCRIPT_DIR}/scripts/07-storage-prep.sh"
     fi
-    log_info "Deploying Storage DePIN (depin-pi3-1)..."
+    log_info "Deploying Storage DePIN (zpin-pi3-1)..."
     bash "${SCRIPT_DIR}/scripts/09-deploy-storage.sh"
     ;;
 
   indexing)
-    log_info "Deploying Indexing DePIN (depin-pi3-2)..."
+    log_info "Deploying Indexing DePIN (zpin-pi3-2)..."
     bash "${SCRIPT_DIR}/scripts/10-deploy-indexing.sh"
     ;;
 
   monitoring)
-    log_info "Deploying Monitoring Stack (depin-pi3-mon)..."
+    log_info "Deploying Monitoring Stack (zpin-pi3-mon)..."
     bash "${SCRIPT_DIR}/scripts/05-monitoring-node.sh"
     ;;
 
   compute)
-    log_info "Deploying Compute DePIN (depin-jetson)..."
+    log_info "Deploying Compute DePIN (zpin-jetson)..."
     bash "${SCRIPT_DIR}/scripts/11-deploy-compute.sh"
     ;;
 

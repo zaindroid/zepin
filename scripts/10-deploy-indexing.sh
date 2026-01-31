@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# DePIN Edge Cluster — Phase 10: Indexing DePIN (depin-pi3-2 ONLY)
+# DePIN Edge Cluster — Phase 10: Indexing DePIN (zpin-pi3-2 ONLY)
 # Deploy ONE lightweight indexing / helper DePIN.
 # Use pruned/light modes only. Outbound-only.
 #
@@ -21,15 +21,15 @@ log_info "=== Deploying Indexing DePIN on $(get_hostname) ==="
 
 # ─── Verify Node ───────────────────────────────────────────────────────────
 CURRENT_HOST=$(get_hostname)
-if [[ "$CURRENT_HOST" != "depin-pi3-2" ]]; then
-  log_warn "Expected 'depin-pi3-2', got '${CURRENT_HOST}'."
+if [[ "$CURRENT_HOST" != "zpin-pi3-2" ]]; then
+  log_warn "Expected 'zpin-pi3-2', got '${CURRENT_HOST}'."
   confirm "Continue anyway?" || bail "Aborting."
 fi
 
 # ─── Generate Docker Compose ───────────────────────────────────────────────
 cat > "${COMPOSE_DIR}/docker-compose.yml" <<'EOF'
 # =============================================================================
-# Indexing DePIN — depin-pi3-2
+# Indexing DePIN — zpin-pi3-2
 # Replace image/config with your chosen indexing DePIN.
 # Must use light/pruned mode — RPi 3B+ has only 1 GB RAM.
 # =============================================================================

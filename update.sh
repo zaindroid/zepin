@@ -30,27 +30,27 @@ if [[ "$ACTION" == "restart" ]]; then
   log_info "Restarting containers on ${HOSTNAME}..."
 
   case "$HOSTNAME" in
-    depin-pi4)
+    zpin-pi4)
       cd "${SCRIPT_DIR}/docker-compose/bandwidth-depin" 2>/dev/null && \
         docker compose down && docker compose up -d || log_warn "No bandwidth compose found"
       ;;
-    depin-pi3-1)
+    zpin-pi3-1)
       cd "${SCRIPT_DIR}/docker-compose/storage-depin" 2>/dev/null && \
         docker compose down && docker compose up -d || log_warn "No storage compose found"
       ;;
-    depin-pi3-2)
+    zpin-pi3-2)
       cd "${SCRIPT_DIR}/docker-compose/indexing-depin" 2>/dev/null && \
         docker compose down && docker compose up -d || log_warn "No indexing compose found"
       ;;
-    depin-pi3-mon)
+    zpin-pi3-mon)
       cd "${SCRIPT_DIR}/docker-compose/monitoring" && \
         docker compose down && docker compose up -d
       ;;
-    depin-jetson)
+    zpin-jetson)
       cd "${SCRIPT_DIR}/docker-compose/compute-depin" 2>/dev/null && \
         docker compose down && docker compose up -d || log_warn "No compute compose found"
       ;;
-    rtx-standby)
+    bitbots01)
       log_info "RTX is standby only — nothing to restart."
       ;;
     *)

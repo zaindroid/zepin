@@ -7,13 +7,13 @@ set -euo pipefail
 # ─── Node Inventory ─────────────────────────────────────────────────────────
 # Tailscale hostnames — matches Tailscale enrollment names.
 declare -A NODES=(
-  [pi4]="depin-pi4"            # RPi 4  — Bandwidth DePIN
-  [pi3-1]="depin-pi3-1"        # RPi 3B+ — Storage DePIN (500 GB USB)
-  [pi3-2]="depin-pi3-2"        # RPi 3B+ — Indexing DePIN
-  [pi3-mon]="depin-pi3-mon"    # RPi 3B+ — Monitoring & Control (NO workloads)
-  [jetson]="depin-jetson"       # Jetson Nano — On-Demand Compute DePIN
-  [rtx]="rtx-standby"          # RTX PC (2× 3090) — Standby Only
-  [laptop]="your-laptop"       # Admin node — management only
+  [pi4]="zpin-pi4"             # RPi 4  — Bandwidth DePIN
+  [pi3-1]="zpin-pi3-1"         # RPi 3B+ — Storage DePIN (500 GB USB)
+  [pi3-2]="zpin-pi3-2"         # RPi 3B+ — Indexing DePIN
+  [pi3-mon]=""                 # RPi 3B+ — Monitoring & Control (TBD)
+  [jetson]=""                  # Jetson Nano — On-Demand Compute DePIN (TBD)
+  [rtx]="bitbots01"            # RTX PC (2× 3090) — Standby Only
+  [laptop]="zAiNeY"            # Admin laptop — management only
 )
 
 # Tailscale IPs — fill in after `tailscale up` on each node
@@ -44,13 +44,13 @@ declare -A MEM_LIMITS=(
   [jetson]="1024m"  # 1 GB — Jetson Nano 2 GB model
 )
 
-# Storage — 500 GB USB drive attached to depin-pi3-1 (storage node)
+# Storage — 500 GB USB drive attached to zpin-pi3-1 (storage node)
 STORAGE_DISK="/dev/sda"               # USB drive — VERIFY with `lsblk` before use
 STORAGE_MOUNT="/mnt/depin-storage"
 STORAGE_ALLOC_PERCENT=70
 
 # ─── SSH ────────────────────────────────────────────────────────────────────
-SSH_USER="depin"
+SSH_USER="zpin"
 SSH_PORT=22
 
 # ─── Docker ─────────────────────────────────────────────────────────────────

@@ -27,45 +27,45 @@ scrape_configs:
   - job_name: "node-exporter"
     scrape_interval: 15s
     static_configs:
-      # depin-pi4 — RPi 4 Bandwidth
+      # zpin-pi4 — RPi 4 Bandwidth
       - targets: ["TAILSCALE_IP_PI4:9100"]
         labels:
-          node: "depin-pi4"
+          node: "zpin-pi4"
           role: "bandwidth"
           hardware: "rpi4"
 
-      # depin-pi3-1 — RPi 3B+ Storage (500 GB USB)
+      # zpin-pi3-1 — RPi 3B+ Storage (500 GB USB)
       - targets: ["TAILSCALE_IP_PI3_1:9100"]
         labels:
-          node: "depin-pi3-1"
+          node: "zpin-pi3-1"
           role: "storage"
           hardware: "rpi3bp"
 
-      # depin-pi3-2 — RPi 3B+ Indexing
+      # zpin-pi3-2 — RPi 3B+ Indexing
       - targets: ["TAILSCALE_IP_PI3_2:9100"]
         labels:
-          node: "depin-pi3-2"
+          node: "zpin-pi3-2"
           role: "indexing"
           hardware: "rpi3bp"
 
-      # depin-pi3-mon — RPi 3B+ Monitoring (self)
+      # zpin-pi3-mon — RPi 3B+ Monitoring (self)
       - targets: ["localhost:9100"]
         labels:
-          node: "depin-pi3-mon"
+          node: "zpin-pi3-mon"
           role: "monitoring"
           hardware: "rpi3bp"
 
-      # depin-jetson — Jetson Nano Compute
+      # zpin-jetson — Jetson Nano Compute
       - targets: ["TAILSCALE_IP_JETSON:9100"]
         labels:
-          node: "depin-jetson"
+          node: "zpin-jetson"
           role: "compute"
           hardware: "jetson-nano"
 
-      # rtx-standby — RTX PC (2× 3090)
+      # bitbots01 — RTX PC (2× 3090)
       - targets: ["TAILSCALE_IP_RTX:9100"]
         labels:
-          node: "rtx-standby"
+          node: "bitbots01"
           role: "standby"
           hardware: "rtx-pc"
 
@@ -75,4 +75,4 @@ scrape_configs:
     static_configs:
       - targets: ["cadvisor:8080"]
         labels:
-          node: "depin-pi3-mon"
+          node: "zpin-pi3-mon"

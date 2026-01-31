@@ -25,12 +25,12 @@ print_banner() {
   echo ""
   echo "  Available roles:"
   echo ""
-  echo "    1) bandwidth    — depin-pi4        (RPi 4, bandwidth DePIN)"
-  echo "    2) storage      — depin-pi3-1      (RPi 3B+ + 500 GB USB, storage DePIN)"
-  echo "    3) indexing     — depin-pi3-2      (RPi 3B+ , indexing DePIN)"
-  echo "    4) monitoring   — depin-pi3-mon    (RPi 3B+ , Prometheus + Grafana)"
-  echo "    5) compute      — depin-jetson     (Jetson Nano, compute DePIN)"
-  echo "    6) rtx          — rtx-standby      (RTX 3090 PC, standby only)"
+  echo "    1) bandwidth    — zpin-pi4         (RPi 4, bandwidth DePIN)"
+  echo "    2) storage      — zpin-pi3-1       (RPi 3B+ + 500 GB USB, storage DePIN)"
+  echo "    3) indexing     — zpin-pi3-2       (RPi 3B+ , indexing DePIN)"
+  echo "    4) monitoring   — TBD              (RPi 3B+ , Prometheus + Grafana)"
+  echo "    5) compute      — TBD              (Jetson Nano, compute DePIN)"
+  echo "    6) rtx          — bitbots01        (RTX 3090 PC, standby only)"
   echo ""
 }
 
@@ -38,12 +38,12 @@ detect_role() {
   local hostname
   hostname=$(get_hostname)
   case "$hostname" in
-    depin-pi4)      echo "bandwidth"  ;;
-    depin-pi3-1)    echo "storage"    ;;
-    depin-pi3-2)    echo "indexing"   ;;
-    depin-pi3-mon)  echo "monitoring" ;;
-    depin-jetson)   echo "compute"    ;;
-    rtx-standby)    echo "rtx"        ;;
+    zpin-pi4)       echo "bandwidth"  ;;
+    zpin-pi3-1)     echo "storage"    ;;
+    zpin-pi3-2)     echo "indexing"   ;;
+    zpin-pi3-mon)   echo "monitoring" ;;
+    zpin-jetson)    echo "compute"    ;;
+    bitbots01)      echo "rtx"        ;;
     *)              echo ""           ;;
   esac
 }

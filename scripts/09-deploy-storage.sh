@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# DePIN Edge Cluster — Phase 9: Storage DePIN (depin-pi3-1 ONLY)
+# DePIN Edge Cluster — Phase 9: Storage DePIN (zpin-pi3-1 ONLY)
 # Deploy ONE storage/data-availability DePIN on the node with 500 GB USB.
 #
 # TEMPLATE: Replace the Docker image and config with your chosen DePIN.
@@ -21,8 +21,8 @@ log_info "=== Deploying Storage DePIN on $(get_hostname) ==="
 
 # ─── Verify Node ───────────────────────────────────────────────────────────
 CURRENT_HOST=$(get_hostname)
-if [[ "$CURRENT_HOST" != "depin-pi3-1" ]]; then
-  log_warn "Expected 'depin-pi3-1', got '${CURRENT_HOST}'."
+if [[ "$CURRENT_HOST" != "zpin-pi3-1" ]]; then
+  log_warn "Expected 'zpin-pi3-1', got '${CURRENT_HOST}'."
   confirm "Continue anyway?" || bail "Aborting."
 fi
 
@@ -41,7 +41,7 @@ fi
 # ─── Generate Docker Compose ───────────────────────────────────────────────
 cat > "${COMPOSE_DIR}/docker-compose.yml" <<EOF
 # =============================================================================
-# Storage DePIN — depin-pi3-1 (500 GB USB)
+# Storage DePIN — zpin-pi3-1 (500 GB USB)
 # Replace image/config with your chosen storage DePIN.
 # =============================================================================
 services:

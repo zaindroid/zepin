@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# DePIN Edge Cluster — Phase 11: Compute DePIN (depin-jetson ONLY)
+# DePIN Edge Cluster — Phase 11: Compute DePIN (zpin-jetson ONLY)
 # Deploy ONE compute/inference DePIN on Jetson Nano (2 GB).
 # Must be event-driven: idle when no jobs, burst on demand.
 #
@@ -21,8 +21,8 @@ log_info "=== Deploying Compute DePIN on $(get_hostname) ==="
 
 # ─── Verify Node ───────────────────────────────────────────────────────────
 CURRENT_HOST=$(get_hostname)
-if [[ "$CURRENT_HOST" != "depin-jetson" ]]; then
-  log_warn "Expected 'depin-jetson', got '${CURRENT_HOST}'."
+if [[ "$CURRENT_HOST" != "zpin-jetson" ]]; then
+  log_warn "Expected 'zpin-jetson', got '${CURRENT_HOST}'."
   confirm "Continue anyway?" || bail "Aborting."
 fi
 
@@ -50,7 +50,7 @@ nvidia-smi 2>/dev/null || tegrastats --interval 1000 --count 1 2>/dev/null || tr
 # ─── Generate Docker Compose ───────────────────────────────────────────────
 cat > "${COMPOSE_DIR}/docker-compose.yml" <<'EOF'
 # =============================================================================
-# Compute DePIN — depin-jetson (Jetson Nano 2 GB)
+# Compute DePIN — zpin-jetson (Jetson Nano 2 GB)
 # Event-driven: idle when no jobs, GPU burst only on demand.
 # Replace image/config with your chosen compute DePIN.
 # =============================================================================

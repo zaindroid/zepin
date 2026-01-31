@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# DePIN Edge Cluster — Phase 8: Bandwidth DePIN (depin-pi4 ONLY)
+# DePIN Edge Cluster — Phase 8: Bandwidth DePIN (zpin-pi4 ONLY)
 # Deploy ONE bandwidth/relay DePIN. Outbound-only. No inbound ports.
 #
 # TEMPLATE: Replace the Docker image and config with your chosen DePIN.
@@ -22,8 +22,8 @@ log_info "=== Deploying Bandwidth DePIN on $(get_hostname) ==="
 
 # ─── Verify Node ───────────────────────────────────────────────────────────
 CURRENT_HOST=$(get_hostname)
-if [[ "$CURRENT_HOST" != "depin-pi4" ]]; then
-  log_warn "Expected 'depin-pi4', got '${CURRENT_HOST}'."
+if [[ "$CURRENT_HOST" != "zpin-pi4" ]]; then
+  log_warn "Expected 'zpin-pi4', got '${CURRENT_HOST}'."
   confirm "Continue anyway?" || bail "Aborting."
 fi
 
@@ -32,7 +32,7 @@ fi
 
 cat > "${COMPOSE_DIR}/docker-compose.yml" <<'EOF'
 # =============================================================================
-# Bandwidth DePIN — depin-pi4
+# Bandwidth DePIN — zpin-pi4
 # Replace image/config with your chosen bandwidth DePIN.
 #
 # Example structure for a typical bandwidth-sharing DePIN:

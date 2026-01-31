@@ -1,7 +1,7 @@
 // =============================================================================
 // DePIN Edge Cluster — ESP32 Environmental Monitor
 // Publishes temperature, heartbeat, and power status via MQTT.
-// All traffic is LAN-only (to depin-pi3-mon).
+// All traffic is LAN-only (to zpin-pi3-mon).
 // =============================================================================
 
 #include <WiFi.h>
@@ -14,7 +14,7 @@
 const char* WIFI_SSID     = "YOUR_WIFI_SSID";       // <-- CHANGE
 const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";    // <-- CHANGE
 
-// MQTT Broker (depin-pi3-mon LAN IP or Tailscale IP)
+// MQTT Broker (zpin-pi3-mon LAN IP or Tailscale IP)
 const char* MQTT_SERVER   = "192.168.1.100";         // <-- CHANGE to monitoring node IP
 const int   MQTT_PORT     = 1883;
 const char* MQTT_CLIENT   = "esp32-monitor-01";
