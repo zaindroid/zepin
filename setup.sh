@@ -25,12 +25,12 @@ print_banner() {
   echo ""
   echo "  Available roles:"
   echo ""
-  echo "    1) bandwidth    — zpin-pi4         (RPi 4, bandwidth DePIN)"
-  echo "    2) storage      — zpin-pi3-1       (RPi 3B+ + 500 GB USB, storage DePIN)"
-  echo "    3) indexing     — zpin-pi3-2       (RPi 3B+ , indexing DePIN)"
-  echo "    4) monitoring   — TBD              (RPi 3B+ , Prometheus + Grafana)"
-  echo "    5) compute      — TBD              (Jetson Nano, compute DePIN)"
-  echo "    6) rtx          — bitbots01        (RTX 3090 PC, standby only)"
+  echo "    1) storage      — zpin-pi4         (RPi 4 + 465 GB USB, storage DePIN)"
+  echo "    2) indexing     — zpin-pi3-2       (RPi 3B+, indexing DePIN)"
+  echo "    3) monitoring   — TBD              (RPi 3B+, Prometheus + Grafana)"
+  echo "    4) compute      — TBD              (Jetson Nano, compute DePIN)"
+  echo "    5) rtx          — bitbots01        (RTX 3090 PC, standby only)"
+  echo "    6) spare        — zpin-pi3-1       (RPi 3B+, spare/future use)"
   echo ""
 }
 
@@ -38,8 +38,8 @@ detect_role() {
   local hostname
   hostname=$(get_hostname)
   case "$hostname" in
-    zpin-pi4)       echo "bandwidth"  ;;
-    zpin-pi3-1)     echo "storage"    ;;
+    zpin-pi4)       echo "storage"    ;;
+    zpin-pi3-1)     echo "spare"      ;;
     zpin-pi3-2)     echo "indexing"   ;;
     zpin-pi3-mon)   echo "monitoring" ;;
     zpin-jetson)    echo "compute"    ;;
@@ -63,24 +63,24 @@ if [[ -z "$ROLE" ]]; then
   print_banner
   read -rp "Select role (1-6 or name): " CHOICE
   case "$CHOICE" in
-    1|bandwidth)   ROLE="bandwidth"  ;;
-    2|storage)     ROLE="storage"    ;;
-    3|indexing)    ROLE="indexing"    ;;
-    4|monitoring)  ROLE="monitoring" ;;
-    5|compute)     ROLE="compute"    ;;
-    6|rtx)         ROLE="rtx"        ;;
+    1|storage)     ROLE="storage"    ;;
+    2|indexing)    ROLE="indexing"    ;;
+    3|monitoring)  ROLE="monitoring" ;;
+    4|compute)     ROLE="compute"    ;;
+    5|rtx)         ROLE="rtx"        ;;
+    6|spare)       ROLE="spare"      ;;
     *) bail "Invalid choice: ${CHOICE}" ;;
   esac
 fi
 
 # Map role → node key and hostname
 declare -A ROLE_TO_KEY=(
-  [bandwidth]="pi4"
-  [storage]="pi3-1"
+  [storage]="pi4"
   [indexing]="pi3-2"
   [monitoring]="pi3-mon"
   [compute]="jetson"
   [rtx]="rtx"
+  [spare]="pi3-1"
 )
 
 NODE_KEY="${ROLE_TO_KEY[$ROLE]:-}"
@@ -136,11 +136,6 @@ case "$ROLE" in
     run_phase 6 "Monitoring Stack"     "${SCRIPT_DIR}/scripts/05-monitoring-node.sh"
     ;;
 
-  bandwidth)
-    run_phase 5 "Node Exporter"        "${SCRIPT_DIR}/scripts/06-node-exporter.sh"
-    run_phase 6 "Bandwidth DePIN"      "${SCRIPT_DIR}/scripts/08-deploy-bandwidth.sh"
-    ;;
-
   storage)
     run_phase 5 "Node Exporter"        "${SCRIPT_DIR}/scripts/06-node-exporter.sh"
     run_phase 6 "Storage Disk Prep"    "${SCRIPT_DIR}/scripts/07-storage-prep.sh"
@@ -159,6 +154,11 @@ case "$ROLE" in
 
   rtx)
     run_phase 5 "RTX Standby Prep"     "${SCRIPT_DIR}/scripts/12-rtx-standby.sh"
+    ;;
+
+  spare)
+    run_phase 5 "Node Exporter"        "${SCRIPT_DIR}/scripts/06-node-exporter.sh"
+    log_info "Spare node - no DePIN workload deployed"
     ;;
 esac
 

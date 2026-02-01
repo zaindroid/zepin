@@ -7,8 +7,8 @@ set -euo pipefail
 # ─── Node Inventory ─────────────────────────────────────────────────────────
 # Tailscale hostnames — matches Tailscale enrollment names.
 declare -A NODES=(
-  [pi4]="zpin-pi4"             # RPi 4  — Bandwidth DePIN
-  [pi3-1]="zpin-pi3-1"         # RPi 3B+ — Storage DePIN (500 GB USB)
+  [pi4]="zpin-pi4"             # RPi 4  — Storage DePIN (465 GB USB)
+  [pi3-1]="zpin-pi3-1"         # RPi 3B+ — Spare (500 GB USB when powered hub available)
   [pi3-2]="zpin-pi3-2"         # RPi 3B+ — Indexing DePIN
   [pi3-mon]=""                 # RPi 3B+ — Monitoring & Control (TBD)
   [jetson]=""                  # Jetson Nano — On-Demand Compute DePIN (TBD)

@@ -27,18 +27,18 @@ scrape_configs:
   - job_name: "node-exporter"
     scrape_interval: 15s
     static_configs:
-      # zpin-pi4 — RPi 4 Bandwidth
+      # zpin-pi4 — RPi 4 Storage (465 GB USB)
       - targets: ["100.95.75.61:9100"]
         labels:
           node: "zpin-pi4"
-          role: "bandwidth"
+          role: "storage"
           hardware: "rpi4"
 
-      # zpin-pi3-1 — RPi 3B+ Storage (500 GB USB)
+      # zpin-pi3-1 — RPi 3B+ Spare (500 GB USB when powered hub available)
       - targets: ["TAILSCALE_IP_PI3_1:9100"]
         labels:
           node: "zpin-pi3-1"
-          role: "storage"
+          role: "spare"
           hardware: "rpi3bp"
 
       # zpin-pi3-2 — RPi 3B+ Indexing

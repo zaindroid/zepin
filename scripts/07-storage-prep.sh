@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
-# DePIN Edge Cluster — Phase 7: Storage Disk Preparation (zpin-pi3-1 ONLY)
-# Prepares the 500 GB USB drive for the storage DePIN.
+# DePIN Edge Cluster — Phase 7: Storage Disk Preparation
+# Prepares the USB drive for the storage DePIN.
 # =============================================================================
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/00-common.sh"
@@ -10,12 +10,10 @@ require_root
 
 log_info "=== Storage Disk Preparation on $(get_hostname) ==="
 
-# ─── Verify This is the Storage Node ───────────────────────────────────────
+# ─── Verify This is a Storage Node ─────────────────────────────────────────
 CURRENT_HOST=$(get_hostname)
-if [[ "$CURRENT_HOST" != "zpin-pi3-1" ]]; then
-  log_warn "Current hostname is '${CURRENT_HOST}', expected 'zpin-pi3-1'."
-  confirm "Are you sure this is the storage node with 500 GB USB?" || bail "Aborting."
-fi
+log_info "Running storage preparation on ${CURRENT_HOST}"
+confirm "Proceeding will WIPE ${STORAGE_DISK}. Continue?" || bail "Aborting."
 
 # ─── Detect USB Drive ──────────────────────────────────────────────────────
 log_info "Current block devices:"
