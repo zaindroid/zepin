@@ -76,8 +76,17 @@ log_ok "Directories created."
 
 # ─── Step 2: Create Identity (CRITICAL) ────────────────────────────────────
 if [[ ! -f "${IDENTITY_DIR}/storagenode/identity.cert" ]]; then
-  log_info "Step 2: Creating Storj identity (this takes 1-8 hours)..."
-  log_warn "Identity is created ONCE and reused forever. Do NOT delete it."
+  log_warn "=== Identity Not Found ==="
+  log_warn "Storj requires a cryptographic identity (difficulty 36 proof-of-work)."
+  log_warn "Generation time:"
+  log_warn "  - On this Pi 4: 1-8 hours"
+  log_warn "  - On RTX 3090:  15-30 minutes"
+  echo ""
+  log_info "RECOMMENDED: Generate on RTX PC (bitbots01) and transfer here."
+  log_info "Run this command on your laptop (zAiNeY):"
+  log_info "  bash scripts/storj-identity-fast-gen.sh"
+  echo ""
+  confirm "Generate identity on THIS Pi (slow, 1-8 hours)?" || bail "Aborted. Use storj-identity-fast-gen.sh instead."
 
   # Download identity binary for ARM64
   log_info "Downloading identity binary..."
@@ -87,8 +96,9 @@ if [[ ! -f "${IDENTITY_DIR}/storagenode/identity.cert" ]]; then
   chmod +x identity
 
   # Create identity using the binary
-  log_info "Creating identity (difficulty 36)... This will take a while."
+  log_info "Creating identity (difficulty 36)... This will take 1-8 hours."
   log_info "Progress will be shown below. Do NOT interrupt!"
+  log_warn "You can run this in screen/tmux and detach if needed."
 
   # Run identity creation with output directory
   IDENTITY_TEMP="/tmp/storj-identity"
@@ -109,8 +119,8 @@ if [[ ! -f "${IDENTITY_DIR}/storagenode/identity.cert" ]]; then
 
   # Show Node ID
   log_info "Your Node ID (save this):"
-  grep -oP '(?<=Node ID: ).*' "${IDENTITY_DIR}/storagenode/identity.cert" || \
-    cat "${IDENTITY_DIR}/storagenode/ca.cert" | head -20
+  cat "${IDENTITY_DIR}/storagenode/identity.cert" | grep -i "node id" || \
+    echo "Check ${IDENTITY_DIR}/storagenode/identity.cert for Node ID"
 
   echo ""
   log_warn "=== NEXT STEP: AUTHORIZE YOUR NODE ==="
@@ -119,7 +129,7 @@ if [[ ! -f "${IDENTITY_DIR}/storagenode/identity.cert" ]]; then
   log_warn "3. Wait for approval (can take hours to days)"
   log_warn "4. Node will earn $0 until approved"
   echo ""
-  confirm "Continue with deployment anyway?" || exit 0
+  confirm "Continue with deployment?" || exit 0
 else
   log_ok "Identity already exists at ${IDENTITY_DIR}/storagenode"
 fi
