@@ -167,9 +167,8 @@ services:
     volumes:
       # Identity: read-only, created once on host
       - ${IDENTITY_DIR}/storagenode:/app/identity:ro
-      # Config and storage: Storj expects storage under config directory
-      - ${CONFIG_DIR}:/app/config
-      - ${STORAGE_DIR}:/app/config/storage
+      # Storage: Storj manages config and data under this directory
+      - ${STORAGE_DIR}:/app/config
 
     ports:
       # Storage node communication (required for earnings)
