@@ -123,11 +123,9 @@ if [[ ! -f "${IDENTITY_DIR}/storagenode/identity.cert" ]]; then
     echo "Check ${IDENTITY_DIR}/storagenode/identity.cert for Node ID"
 
   echo ""
-  log_warn "=== NEXT STEP: AUTHORIZE YOUR NODE ==="
-  log_warn "1. Go to: https://registration.storj.io/"
-  log_warn "2. Upload: ${IDENTITY_DIR}/storagenode/identity.cert"
-  log_warn "3. Wait for approval (can take hours to days)"
-  log_warn "4. Node will earn $0 until approved"
+  log_info "=== Identity Ready ==="
+  log_info "Authorization is no longer required - your identity can be used directly."
+  log_info "The node will start earning after a vetting period (1-6 months)."
   echo ""
   confirm "Continue with deployment?" || exit 0
 else
@@ -175,10 +173,12 @@ services:
       - ${STORAGE_DIR}:/app/storage
 
     ports:
-      # Required for maximum earnings
+      # Storage node communication (required for earnings)
       # If dorm blocks these, node still works but earns 30-50% less
       - "28967:28967/tcp"
       - "28967:28967/udp"
+      # Dashboard (web UI) - only accessible on local network
+      - "14002:14002"
 
     networks:
       - depin-net
@@ -250,10 +250,9 @@ log_info "Dashboard: http://$(hostname -I | awk '{print $1}'):14002"
 log_info "  (or via Tailscale: http://$(get_tailscale_ip):14002)"
 log_info ""
 log_warn "IMPORTANT NEXT STEPS:"
-log_warn "  1. If not done yet: Authorize node at https://registration.storj.io/"
-log_warn "  2. Monitor logs: docker logs -f storj-storage"
-log_warn "  3. Check dashboard for satellite connections"
-log_warn "  4. Wait for vetting period (1-6 months for significant earnings)"
-log_warn "  5. NEVER delete ${IDENTITY_DIR} - identity is permanent"
+log_warn "  1. Monitor logs: docker logs -f storj-storage"
+log_warn "  2. Check dashboard for satellite connections"
+log_warn "  3. Wait for vetting period (1-6 months for significant earnings)"
+log_warn "  4. NEVER delete ${IDENTITY_DIR} - identity is permanent"
 echo ""
 log_ok "Phase 9 complete."
