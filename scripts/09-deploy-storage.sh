@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 # =============================================================================
-# DePIN Edge Cluster — Phase 9: Storage DePIN Deployment
-# Deploys Storj storage node in dorm-safe, outbound-only mode.
+# DePIN Edge Cluster — Phase 9: Storj Storage Node Deployment
+# Corrected deployment following proper Storj architecture
 #
-# DORM-SAFE CONFIGURATION:
-#   - Outbound-only (no inbound ports required)
-#   - Encrypted data chunks (no content liability)
-#   - Limited bandwidth allocation
-#   - Strict resource limits (CPU/RAM)
+# ARCHITECTURE:
+#   1. Identity created ONCE on host (never regenerated)
+#   2. Container mounts identity as read-only
+#   3. Authorization done via Storj website (one-time)
 #
-# NOTE: Storj can work without port forwarding, but earnings will be lower.
-# This is acceptable for dorm-safe operation.
+# DORM REALITY:
+#   - Will run, but earnings limited without port forwarding
+#   - Vetting period: 1-6 months before significant earnings
+#   - Uptime history matters more than instant earnings
 # =============================================================================
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/00-common.sh"
@@ -19,8 +20,11 @@ require_root
 require_cmd docker
 
 COMPOSE_DIR="${SCRIPT_DIR}/../docker-compose/storage-depin"
+IDENTITY_DIR="/mnt/depin-storage/identity"
+CONFIG_DIR="/mnt/depin-storage/config"
+STORAGE_DIR="/mnt/depin-storage/storage"
 
-log_info "=== Deploying Storj Storage Node on $(get_hostname) ==="
+log_info "=== Storj Storage Node Deployment on $(get_hostname) ==="
 
 # ─── Verify Storage Mount ─────────────────────────────────────────────────
 if ! mountpoint -q "$STORAGE_MOUNT"; then
@@ -30,39 +34,28 @@ fi
 AVAIL_GB=$(df -BG "$STORAGE_MOUNT" | awk 'NR==2 {print $4}' | tr -d 'G')
 log_info "Storage available: ${AVAIL_GB} GB at ${STORAGE_MOUNT}"
 
-if (( AVAIL_GB < 50 )); then
-  bail "Less than 50 GB available. Not enough for Storj (minimum 550 GB recommended)."
+if (( AVAIL_GB < 100 )); then
+  bail "Less than 100 GB available. Storj requires minimum 550 GB recommended."
 fi
 
-# ─── Storj Configuration ──────────────────────────────────────────────────
+# ─── Configuration ──────────────────────────────────────────────────────────
 log_warn "=== Storj Setup Required ==="
-log_warn "Before deploying, you need:"
-log_warn "  1. Storj account: https://www.storj.io/host-a-node"
-log_warn "  2. Auth token from Storj dashboard"
-log_warn "  3. Wallet address (ERC-20 compatible)"
-log_warn "  4. Email address"
+log_warn "You need:"
+log_warn "  1. ERC-20 wallet address (MetaMask, etc.)"
+log_warn "  2. Email address"
+log_warn "  3. Authorization at https://registration.storj.io/ (AFTER identity creation)"
 echo ""
 
 if [[ ! -f "${COMPOSE_DIR}/.env" ]]; then
-  log_info "Creating .env template at ${COMPOSE_DIR}/.env"
+  log_info "Creating .env template..."
+  mkdir -p "$COMPOSE_DIR"
   cat > "${COMPOSE_DIR}/.env" <<'EOF'
 # Storj Storage Node Configuration
-# Fill in your details before deploying
-
-# Get this from: https://registration.storj.io/
 STORJ_WALLET=0xYOUR_WALLET_ADDRESS_HERE
-
-# Get auth token from Storj dashboard
 STORJ_EMAIL=your-email@example.com
-
-# Storage allocation (70% of available space)
-STORJ_STORAGE=300GB
-
-# Bandwidth allocation (conservative for dorm)
-# Default: 2TB/month, we limit to 500GB/month for safety
-STORJ_BANDWIDTH=500GB
+STORJ_STORAGE=400GB
 EOF
-  log_warn ">>> EDIT ${COMPOSE_DIR}/.env with your Storj credentials <<<"
+  log_warn ">>> EDIT ${COMPOSE_DIR}/.env with your wallet and email <<<"
   log_info "Then re-run this script."
   exit 0
 fi
@@ -73,69 +66,120 @@ source "${COMPOSE_DIR}/.env"
 set +a
 
 if [[ "$STORJ_WALLET" == "0xYOUR_WALLET_ADDRESS_HERE" ]]; then
-  bail "Please edit ${COMPOSE_DIR}/.env with your actual Storj wallet address."
+  bail "Please edit ${COMPOSE_DIR}/.env with your actual wallet address."
 fi
 
-# ─── Generate Docker Compose ───────────────────────────────────────────────
-log_info "Generating Storj docker-compose.yml..."
+# ─── Step 1: Prepare Directories ───────────────────────────────────────────
+log_info "Step 1: Preparing directories..."
+mkdir -p "$IDENTITY_DIR" "$CONFIG_DIR" "$STORAGE_DIR"
+log_ok "Directories created."
+
+# ─── Step 2: Create Identity (CRITICAL) ────────────────────────────────────
+if [[ ! -f "${IDENTITY_DIR}/storagenode/identity.cert" ]]; then
+  log_info "Step 2: Creating Storj identity (this takes 5-10 minutes)..."
+  log_warn "Identity is created ONCE and reused forever. Do NOT delete it."
+
+  # Create identity on host using temporary container
+  docker run --rm -it \
+    -v "${IDENTITY_DIR}:/app/identity" \
+    storjlabs/storagenode:latest \
+    identity create storagenode --identity-dir /app/identity
+
+  if [[ ! -f "${IDENTITY_DIR}/storagenode/identity.cert" ]]; then
+    bail "Identity creation failed. Check Docker logs above."
+  fi
+
+  log_ok "Identity created at ${IDENTITY_DIR}/storagenode"
+
+  # Show identity info
+  log_info "Your Node ID:"
+  docker run --rm \
+    -v "${IDENTITY_DIR}:/app/identity:ro" \
+    storjlabs/storagenode:latest \
+    identity export --identity-dir /app/identity/storagenode
+
+  echo ""
+  log_warn "=== NEXT STEP: AUTHORIZE YOUR NODE ==="
+  log_warn "1. Go to: https://registration.storj.io/"
+  log_warn "2. Upload: ${IDENTITY_DIR}/storagenode/identity.cert"
+  log_warn "3. Wait for approval (can take hours to days)"
+  log_warn "4. Node will earn $0 until approved"
+  echo ""
+  confirm "Continue with deployment anyway?" || exit 0
+else
+  log_ok "Identity already exists at ${IDENTITY_DIR}/storagenode"
+fi
+
+# ─── Step 3: Generate Docker Compose ───────────────────────────────────────
+log_info "Step 3: Generating docker-compose.yml..."
 
 cat > "${COMPOSE_DIR}/docker-compose.yml" <<EOF
 # =============================================================================
-# Storj Storage Node — Dorm-Safe Configuration
+# Storj Storage Node — Correct Configuration
 #
-# SAFETY FEATURES:
-#   - No inbound ports exposed (works in CGNAT/NAT)
-#   - Encrypted chunks only (no content liability)
-#   - Bandwidth limited to ${STORJ_BANDWIDTH}/month
-#   - CPU capped at 50%, RAM limited to 512MB
-#   - Outbound HTTPS traffic only
+# EARNINGS REALITY:
+#   - First 1-2 months: \$0-2 (vetting period)
+#   - After vetting: \$3-8/month
+#   - With good uptime & network: \$10-30/month
+#   - Long-term (TB+ storage): \$40+/month
 #
-# TRADE-OFFS:
-#   - Lower earnings without port forwarding (~30-50% of full node)
-#   - Acceptable for dorm-safe, low-risk operation
+# DORM MODE:
+#   - Ports exposed for maximum earnings potential
+#   - If dorm blocks ports, node still runs but earns less
+#   - Uptime history matters more than instant earnings
 # =============================================================================
 services:
   storj:
     image: storjlabs/storagenode:latest
     container_name: storj-storage
     restart: unless-stopped
+
     environment:
       WALLET: ${STORJ_WALLET}
       EMAIL: ${STORJ_EMAIL}
-      ADDRESS: ""  # Empty = outbound-only mode, no public IP required
+      ADDRESS: ":28967"
       STORAGE: ${STORJ_STORAGE}
-      # Bandwidth limits (dorm-safe)
-      STORAGE2_BANDWIDTH_ALLOCATION: ${STORJ_BANDWIDTH}
-      # Logging
+      BANDWIDTH: "0"  # 0 = unlimited (Storj rate-limits automatically)
       LOG_LEVEL: info
+
     volumes:
-      - ${STORAGE_MOUNT}/storj-data:/app/config
-      - ${STORAGE_MOUNT}/storj-identity/storagenode:/app/identity
+      # Identity: read-only, created once on host
+      - ${IDENTITY_DIR}/storagenode:/app/identity:ro
+      # Config: container state
+      - ${CONFIG_DIR}:/app/config
+      # Storage: actual data chunks
+      - ${STORAGE_DIR}:/app/storage
+
+    ports:
+      # Required for maximum earnings
+      # If dorm blocks these, node still works but earns 30-50% less
+      - "28967:28967/tcp"
+      - "28967:28967/udp"
+
     networks:
       - depin-net
-    # CRITICAL: No ports exposed - outbound only
-    # ports: [] # Explicitly no ports
-    dns:
-      - 1.1.1.1
-      - 8.8.8.8
+
     deploy:
       resources:
         limits:
-          cpus: "0.50"  # 50% CPU cap
-          memory: 512M
+          cpus: "1.0"
+          memory: 1024M
         reservations:
-          memory: 128M
+          memory: 256M
+
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
+
     healthcheck:
       test: ["CMD-SHELL", "wget --spider -q http://localhost:14002/api/sno || exit 1"]
       interval: 60s
       timeout: 10s
       retries: 3
       start_period: 120s
+
     security_opt:
       - no-new-privileges:true
 
@@ -144,60 +188,48 @@ networks:
     external: true
 EOF
 
-log_ok "Docker Compose generated."
+log_ok "docker-compose.yml generated."
 
-# ─── Identity Generation ──────────────────────────────────────────────────
-IDENTITY_DIR="${STORAGE_MOUNT}/storj-identity"
-
-if [[ ! -f "${IDENTITY_DIR}/storagenode/identity.key" ]]; then
-  log_info "Generating Storj identity (this may take a while)..."
-  log_warn "You need to authorize this identity in the Storj dashboard before it works!"
-
-  mkdir -p "$IDENTITY_DIR"
-
-  # Generate identity using Storj's setup command
-  # The modern storagenode image uses 'storagenode setup' to generate identity
-  mkdir -p "${IDENTITY_DIR}/storagenode"
-  docker run --rm \
-    -v "${IDENTITY_DIR}/storagenode:/app/identity" \
-    --user "$(id -u):$(id -g)" \
-    storjlabs/storagenode:latest \
-    setup --identity-dir /app/identity
-
-  log_ok "Identity generated at ${IDENTITY_DIR}/storagenode"
-  log_warn ">>> Sign this identity at https://registration.storj.io/ <<<"
-  log_info "You'll need the node ID from ${IDENTITY_DIR}/storagenode/identity.cert"
-fi
-
-# ─── Pre-flight Checks ─────────────────────────────────────────────────────
-log_info "Running pre-flight checks..."
+# ─── Step 4: Pre-flight Checks ─────────────────────────────────────────────
+log_info "Step 4: Running pre-flight checks..."
 
 TOTAL_MEM=$(free -m | awk '/^Mem:/ {print $2}')
-AVAIL_MEM=$(free -m | awk '/^Mem:/ {print $7}')
-log_info "Total RAM: ${TOTAL_MEM} MB, Available: ${AVAIL_MEM} MB"
+log_info "Total RAM: ${TOTAL_MEM} MB"
 
-# Docker network
 if ! docker network inspect depin-net &>/dev/null; then
   docker network create --driver bridge --subnet 172.28.0.0/16 depin-net
 fi
 
-# ─── Deploy ─────────────────────────────────────────────────────────────────
-log_info "Deploying Storj storage node..."
+# ─── Step 5: Deploy ─────────────────────────────────────────────────────────
+log_info "Step 5: Deploying Storj storage node..."
+
+# Clean up any previous failed deployment
 cd "$COMPOSE_DIR"
+docker compose down 2>/dev/null || true
+docker rm -f storj-storage 2>/dev/null || true
+
+# Start node
 docker compose pull
 docker compose up -d
 
-sleep 20
+sleep 10
 docker compose ps
-docker compose logs --tail=30
+echo ""
+docker compose logs --tail=50
 
-validate_no_inbound
-
+echo ""
 log_info "=== Storj Storage Node Deployed ==="
-log_info "Data directory: ${STORAGE_MOUNT}/storj-data"
-log_info "Identity: ${STORAGE_MOUNT}/storj-identity"
-log_info "Bandwidth limit: ${STORJ_BANDWIDTH}/month (dorm-safe)"
+log_info "Identity: ${IDENTITY_DIR}/storagenode"
+log_info "Storage allocation: ${STORJ_STORAGE}"
 log_info ""
-log_warn "IMPORTANT: Monitor bandwidth usage in first 72 hours"
-log_warn "If network admin flags high traffic, reduce STORJ_BANDWIDTH in .env"
+log_info "Dashboard: http://$(hostname -I | awk '{print $1}'):14002"
+log_info "  (or via Tailscale: http://$(get_tailscale_ip):14002)"
+log_info ""
+log_warn "IMPORTANT NEXT STEPS:"
+log_warn "  1. If not done yet: Authorize node at https://registration.storj.io/"
+log_warn "  2. Monitor logs: docker logs -f storj-storage"
+log_warn "  3. Check dashboard for satellite connections"
+log_warn "  4. Wait for vetting period (1-6 months for significant earnings)"
+log_warn "  5. NEVER delete ${IDENTITY_DIR} - identity is permanent"
+echo ""
 log_ok "Phase 9 complete."
