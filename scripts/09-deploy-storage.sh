@@ -110,7 +110,7 @@ services:
       LOG_LEVEL: info
     volumes:
       - ${STORAGE_MOUNT}/storj-data:/app/config
-      - ${STORAGE_MOUNT}/storj-identity:/app/identity
+      - ${STORAGE_MOUNT}/storj-identity/storagenode:/app/identity
     networks:
       - depin-net
     # CRITICAL: No ports exposed - outbound only
@@ -149,19 +149,20 @@ log_ok "Docker Compose generated."
 # ─── Identity Generation ──────────────────────────────────────────────────
 IDENTITY_DIR="${STORAGE_MOUNT}/storj-identity"
 
-if [[ ! -f "${IDENTITY_DIR}/identity.key" ]]; then
+if [[ ! -f "${IDENTITY_DIR}/storagenode/identity.key" ]]; then
   log_info "Generating Storj identity (this may take a while)..."
   log_warn "You need to authorize this identity in the Storj dashboard before it works!"
 
   mkdir -p "$IDENTITY_DIR"
 
   # Generate identity using Storj's identity tool
-  docker run --rm -v "${IDENTITY_DIR}:/identity" storjlabs/storagenode:latest \
-    identity create storagenode --difficulty 36
+  # Note: This creates subdirectory "storagenode" with the identity files
+  docker run --rm -v "${IDENTITY_DIR}:/output" storjlabs/storagenode:latest \
+    identity create storagenode --identity-dir /output --difficulty 36
 
-  log_ok "Identity generated at ${IDENTITY_DIR}"
+  log_ok "Identity generated at ${IDENTITY_DIR}/storagenode"
   log_warn ">>> Sign this identity at https://registration.storj.io/ <<<"
-  log_info "You'll need the node ID from the identity.cert file."
+  log_info "You'll need the node ID from ${IDENTITY_DIR}/storagenode/identity.cert"
 fi
 
 # ─── Pre-flight Checks ─────────────────────────────────────────────────────
