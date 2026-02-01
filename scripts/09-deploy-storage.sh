@@ -76,27 +76,41 @@ log_ok "Directories created."
 
 # ─── Step 2: Create Identity (CRITICAL) ────────────────────────────────────
 if [[ ! -f "${IDENTITY_DIR}/storagenode/identity.cert" ]]; then
-  log_info "Step 2: Creating Storj identity (this takes 5-10 minutes)..."
+  log_info "Step 2: Creating Storj identity (this takes 1-8 hours)..."
   log_warn "Identity is created ONCE and reused forever. Do NOT delete it."
 
-  # Create identity on host using temporary container
-  docker run --rm -it \
-    -v "${IDENTITY_DIR}:/app/identity" \
-    storjlabs/storagenode:latest \
-    identity create storagenode --identity-dir /app/identity
+  # Download identity binary for ARM64
+  log_info "Downloading identity binary..."
+  cd /tmp
+  curl -L https://github.com/storj/storj/releases/latest/download/identity_linux_arm64.zip -o identity_linux_arm64.zip
+  unzip -o identity_linux_arm64.zip
+  chmod +x identity
+
+  # Create identity using the binary
+  log_info "Creating identity (difficulty 36)... This will take a while."
+  log_info "Progress will be shown below. Do NOT interrupt!"
+
+  # Run identity creation with output directory
+  IDENTITY_TEMP="/tmp/storj-identity"
+  mkdir -p "$IDENTITY_TEMP"
+  ./identity create storagenode --identity-dir "$IDENTITY_TEMP"
+
+  # Move generated identity to correct location
+  mkdir -p "$IDENTITY_DIR"
+  mv "$IDENTITY_TEMP/storagenode" "$IDENTITY_DIR/"
+  rm -rf "$IDENTITY_TEMP"
+  rm -f identity identity_linux_arm64.zip
 
   if [[ ! -f "${IDENTITY_DIR}/storagenode/identity.cert" ]]; then
-    bail "Identity creation failed. Check Docker logs above."
+    bail "Identity creation failed. Check output above."
   fi
 
   log_ok "Identity created at ${IDENTITY_DIR}/storagenode"
 
-  # Show identity info
-  log_info "Your Node ID:"
-  docker run --rm \
-    -v "${IDENTITY_DIR}:/app/identity:ro" \
-    storjlabs/storagenode:latest \
-    identity export --identity-dir /app/identity/storagenode
+  # Show Node ID
+  log_info "Your Node ID (save this):"
+  grep -oP '(?<=Node ID: ).*' "${IDENTITY_DIR}/storagenode/identity.cert" || \
+    cat "${IDENTITY_DIR}/storagenode/ca.cert" | head -20
 
   echo ""
   log_warn "=== NEXT STEP: AUTHORIZE YOUR NODE ==="
