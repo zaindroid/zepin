@@ -24,7 +24,7 @@ SCRIPTS := scripts
 SSH_USER := zpin
 
 # ─── Tailscale IPs (fill in after enrollment) ──────────────────────────────
-PI4_IP      :=
+PI4_IP      := 100.95.75.61
 PI3_1_IP    :=
 PI3_2_IP    := 100.118.198.114
 PI3_MON_IP  :=

@@ -18,7 +18,7 @@ declare -A NODES=(
 
 # Tailscale IPs — fill in after `tailscale up` on each node
 declare -A TS_IPS=(
-  [pi4]=""
+  [pi4]="100.95.75.61"
   [pi3-1]=""
   [pi3-2]="100.118.198.114"
   [pi3-mon]=""

@@ -28,7 +28,7 @@ scrape_configs:
     scrape_interval: 15s
     static_configs:
       # zpin-pi4 — RPi 4 Bandwidth
-      - targets: ["TAILSCALE_IP_PI4:9100"]
+      - targets: ["100.95.75.61:9100"]
         labels:
           node: "zpin-pi4"
           role: "bandwidth"
