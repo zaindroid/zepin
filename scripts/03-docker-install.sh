@@ -117,7 +117,10 @@ fi
 
 # ─── Verify ─────────────────────────────────────────────────────────────────
 log_info "=== Docker Installation Complete ==="
-docker version --format '{{.Server.Version}}' | xargs -I {} log_info "Docker version: {}"
-docker compose version 2>/dev/null | xargs -I {} log_info "{}"
-docker info --format '{{.StorageDriver}}' | xargs -I {} log_info "Storage driver: {}"
+DOCKER_VERSION=$(docker version --format '{{.Server.Version}}')
+COMPOSE_VERSION=$(docker compose version 2>/dev/null)
+STORAGE_DRIVER=$(docker info --format '{{.StorageDriver}}')
+log_info "Docker version: ${DOCKER_VERSION}"
+log_info "${COMPOSE_VERSION}"
+log_info "Storage driver: ${STORAGE_DRIVER}"
 log_ok "Phase 3 complete. Next: run 04-tailscale.sh"
