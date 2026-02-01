@@ -72,6 +72,10 @@ fi
 # ─── Step 1: Prepare Directories ───────────────────────────────────────────
 log_info "Step 1: Preparing directories..."
 mkdir -p "$IDENTITY_DIR" "$CONFIG_DIR" "$STORAGE_DIR"
+# Storj requires these subdirectories to exist
+mkdir -p "${STORAGE_DIR}/storage/blobs"
+mkdir -p "${STORAGE_DIR}/storage/temp"
+mkdir -p "${STORAGE_DIR}/storage/trash"
 log_ok "Directories created."
 
 # ─── Step 2: Create Identity (CRITICAL) ────────────────────────────────────
