@@ -156,9 +156,13 @@ if [[ ! -f "${IDENTITY_DIR}/storagenode/identity.key" ]]; then
   mkdir -p "$IDENTITY_DIR"
 
   # Generate identity using Storj's identity tool
-  # Note: This creates subdirectory "storagenode" with the identity files
-  docker run --rm -v "${IDENTITY_DIR}:/output" storjlabs/storagenode:latest \
-    identity create storagenode --identity-dir /output --difficulty 36
+  # Creates files directly in the mounted directory
+  docker run --rm \
+    -v "${IDENTITY_DIR}/storagenode:/app/identity" \
+    --user "$(id -u):$(id -g)" \
+    --entrypoint /bin/sh \
+    storjlabs/storagenode:latest \
+    -c "storagenode-identity create --identity-dir /app/identity --difficulty 36"
 
   log_ok "Identity generated at ${IDENTITY_DIR}/storagenode"
   log_warn ">>> Sign this identity at https://registration.storj.io/ <<<"
