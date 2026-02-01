@@ -42,7 +42,7 @@ scrape_configs:
           hardware: "rpi3bp"
 
       # zpin-pi3-2 — RPi 3B+ Indexing
-      - targets: ["TAILSCALE_IP_PI3_2:9100"]
+      - targets: ["100.118.198.114:9100"]
         labels:
           node: "zpin-pi3-2"
           role: "indexing"

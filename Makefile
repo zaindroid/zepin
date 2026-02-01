@@ -26,7 +26,7 @@ SSH_USER := zpin
 # ─── Tailscale IPs (fill in after enrollment) ──────────────────────────────
 PI4_IP      :=
 PI3_1_IP    :=
-PI3_2_IP    :=
+PI3_2_IP    := 100.118.198.114
 PI3_MON_IP  :=
 JETSON_IP   :=
 RTX_IP      :=
@@ -175,7 +175,7 @@ deploy-compute:
 	ssh $(SSH_USER)@$(JETSON_IP) "cd ~/depin-cluster && sudo bash scripts/11-deploy-compute.sh"
 
 rtx-prep:
-	$(call ssh_run,bitbots01,$(RTX_IP),$(SCRIPTS)/12-bitbots01.sh)
+	$(call ssh_run,bitbots01,$(RTX_IP),$(SCRIPTS)/12-rtx-standby.sh)
 
 # =============================================================================
 # VALIDATION & HEALTH
